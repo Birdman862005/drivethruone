@@ -4,11 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Drive Thru ONE</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-
 <style>
-
-
 body { margin:0; font-family: Arial; background:#1a1a1a; color:white; }
 .screen { display:none; height:calc(100vh - 100px); }
 .active { display:block; }
@@ -16,11 +12,10 @@ body { margin:0; font-family: Arial; background:#1a1a1a; color:white; }
 /* HEADER */
 .header { display:flex; flex-wrap: wrap; align-items:center; padding:15px 5px; background:#111;}
 .logo { margin-right: 10px; display: flex; font-style: italic; margin-top:5px}
-.drive-thru { font-size: 30px; font-weight:bold; transform:rotate(0deg);font-family: Haffer, Haffer-fallback-1, Haffer-fallback-2, Helvetica, Arial, Fustat, sans-serif; }
-.one { font-size: 30px; font-weight:bold; color:#ff9800; margin-top:1px; transform:rotate(0deg); margin-left: 10px;}
-.logo, .drive, .one { margin-right:-20px;font-family: Haffer, Haffer-fallback-1, Haffer-fallback-2, Helvetica, Arial, Fustat, sans-serif;}
-.search {  margin-left: 41px; margin-top:10px;}
-.search input { width:80%; padding:5px 10px; font-size:22px; border-radius:4px; border:none;  }
+.drive-thru { font-size: 30px; font-weight:bold; font-family: Haffer, Helvetica, Arial, sans-serif; }
+.one { font-size: 30px; font-weight:bold; color:#ff9800; margin-top:1px; margin-left: 10px;}
+.search { margin-left: 41px; margin-top:10px;}
+.search input { width:80%; padding:5px 10px; font-size:22px; border-radius:4px; border:none; }
 .total-view { display:flex; align-items:center; margin-left:auto; flex-shrink:0; }
 .total-view span { margin-right: 15px; }
 .view-order { background:#ffcc00; color:black; padding:12px 12px; font-weight:bold; border:none; border-radius:4px; cursor:pointer; }
@@ -45,11 +40,11 @@ body { margin:0; font-family: Arial; background:#1a1a1a; color:white; }
   cursor:pointer;
   font-size:22px;
 }
-/* Category Colors */
-.drinks { background:#89CFF0; }   /* Blue */
-.snacks { background:#FFD580; }   /* Orange */
-.tobacco { background:#808080; }  /* Purple */
-.beer { background:#765341; }     /* Green */
+.drinks { background:#89CFF0; }  
+.snacks { background:#FFD580; }  
+.tobacco { background:#808080; }  
+.beer { background:#765341; }     
+
 /* ITEMS */
 #itemList { margin-top:13px;margin-left:20px;display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:20px; padding:10px; padding-bottom:90px;}
 .item { background:#333; width:90px; height: 130px;border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center;cursor:pointer; aspect-ratio:1/1; padding:6px; text-align:center;}
@@ -61,7 +56,7 @@ body { margin:0; font-family: Arial; background:#1a1a1a; color:white; }
 .order-row img { width:80px; height:80px; object-fit:cover; border-radius:4px;}
 .delete-btn { background:red; color:white; border:none; width:35px; height:35px; border-radius:6px;}
 .order-name { flex:1;}
-.subtotal-box { text-align:right; font-weight:bold; margin-top:10px;font-size: 20px;margin-top:15px;}
+.subtotal-box { text-align:right; font-weight:bold; margin-top:15px;font-size: 20px;}
 
 /* BUTTONS */
 .button-bar { position:fixed; bottom:15px; right:15px; display:flex; gap:10px;}
@@ -80,14 +75,22 @@ body { margin:0; font-family: Arial; background:#1a1a1a; color:white; }
   justify-content: center;
   align-items: center;
 }
-#qrcode {
-  width: 100%;
-  height: 100%;
-}
-#screen1 .search {
-  display: none;
-}
+#qrcode { width: 100%; height: 100%; }
+#screen1 .search { display: none; }
 
+#menuBtn { background: white; color: black; border: none; border-radius: 4px; padding: 10px 12px; font-size: 16px; display: flex; align-items: center; cursor: pointer; margin-left: 10px;}
+#menuBtn .hamburger { font-size: 20px; line-height: 1; }
+#menuBtn .menuText { margin-left: 5px; }
+
+#staffMenu { display: none; position: absolute; top: 60px; right: 10px; background: white; border: 1px solid #ccc; padding: 0; margin: 0; z-index: 999;}
+#staffMenu li { list-style: none; padding: 12px 16px; font-size: 18px; color: black; cursor: pointer; }
+#staffMenu li:hover { background: #eee; }
+
+/* Edit modal styles */
+#editModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:flex-start; overflow-y:auto; z-index:1000; }
+#editModal > div { background:white; padding:20px; border-radius:10px; max-width:600px; width:90%; margin-top:50px; }
+#editModal h2 { margin-top:0; }
+#editContainer { display:flex; flex-direction:column; gap:20px; margin-bottom:20px; }
 </style>
 </head>
 
@@ -102,27 +105,34 @@ body { margin:0; font-family: Arial; background:#1a1a1a; color:white; }
     <span id="itemCount">0 items</span>
     <span id="totalAmount">$0.00</span>
     <button class="view-order" onclick="openOrderScreen()">VIEW ORDER</button>
+    <button id="menuBtn">
+      <span class="hamburger">☰</span>
+      <span class="menuText">Menu</span>
+      <ul id="staffMenu">
+        <li id="staffLoginBtn">Staff Login</li>
+        <li id="reportsBtn">Reports</li>
+        <li id="editItemsBtn">Add/Edit Items</li>
+      </ul>
+    </button>
   </div>
 </div>
 <div class="redline"></div>
 
 <div id="screen1" class="screen active">
   <div class="categories">
-  <button class="cat-btn drinks" onclick="openCategory('drinks')">Drinks</button>
-  <button class="cat-btn snacks" onclick="openCategory('snacks')">Snacks</button>
-  <button class="cat-btn tobacco" onclick="openCategory('tobacco')">Tobacco</button>
-  <button class="cat-btn beer" onclick="openCategory('beer')">Beer</button>
-</div>
-
+    <button class="cat-btn drinks" onclick="openCategory('drinks')">Drinks</button>
+    <button class="cat-btn snacks" onclick="openCategory('snacks')">Snacks</button>
+    <button class="cat-btn tobacco" onclick="openCategory('tobacco')">Tobacco</button>
+    <button class="cat-btn beer" onclick="openCategory('beer')">Beer</button>
+  </div>
 </div>
 
 <div id="screen2" class="screen">
-    <div class="search"><input placeholder="Search item..."></div>
+  <div class="search"><input placeholder="Search item..."></div>
   <div id="itemList"></div>
   <div class="button-bar">
     <button class="done-btn" onclick="showQR()">DONE</button>
     <button class="back-btn" onclick="goHome()">BACK</button>
-
   </div>
 </div>
 
@@ -134,42 +144,58 @@ body { margin:0; font-family: Arial; background:#1a1a1a; color:white; }
   </div>
 </div>
 
+<!-- QR Overlay -->
 <div class="overlay" id="overlay" onclick="if(event.target.id==='overlay') closeQR()">
   <div class="qr-box"><div id="qrcode"></div></div>
 </div>
 
+<!-- Edit Items Modal -->
+<div id="editModal">
+  <div>
+    <h2>Edit Items</h2>
+    <div id="editContainer"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button id="addNewItemBtn" style="background:#2196F3;color:white;padding:10px 15px;border:none;border-radius:5px;">Add</button>
+      <button id="doneEditBtn" style="background:#4CAF50;color:white;padding:10px 15px;border:none;border-radius:5px;">Done</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  let currentCategory = null;
-const menu={
-  drinks:[{name:"Milk (1/2 gal) ",price:2.69 ,img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTvyIvBSmqZSS_cshOrIsUUU6SdNix20jt7ww&s"},
-          {name:"Milk (1 gal) ",price:5.38 ,img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrAyB7Y3YYvgL-wotqbeNretGN-rfXRaYu-w&s"},
-          {name:"Cola (12 oz)",price:1.50,img:"https://images.unsplash.com/photo-1667204651371-5d4a65b8b5a9?q=80&w=716&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
-          {name:"Pepsi",price:1.50,img:"https://m.media-amazon.com/images/I/31KIQ3A9WnL._SY300_SX300_QL70_FMwebp_.jpg"},
-          {name:"Gatorade ",price:1.08 ,img:"https://img-1.kwcdn.com/local-goods-image/2019505e2c8/73915dbf-89c5-404f-81c2-da7005bd4ec0_1500x1500.jpeg.format.jpg?imageView2/2/w/264/q/70/format/avif"},
-          
-          ],
-  snacks:[{name:"Lays",price:1.50,img:"https://m.media-amazon.com/images/I/81Ui6bB1nJL._SX679_.jpg"},
-          {name:"Rice Krispies (16pk)",price:6.98,img:"https://m.media-amazon.com/images/I/81aoI6+4DSL._SX569_.jpg"},
-          {name:"Welchs Fruit Snacks",price:9.74,img:"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTDV3RR3hGkw-IFf7YTTtmSJI8mxJEl5N70VTvsU2ECQJ2TJ1w_TnybJuA7aWDfoXUyA9lScd-hF_EveR0JCIF4GOzc4REHRQ4AILxFb4Dh2v7vXRB6aaLFRT5sCUXbC_Z_9OHGBpY&usqp=CAc"},
-
-
-          {name:"Doritos (party size)",price:4.50,img:"https://i.pinimg.com/1200x/ba/60/b7/ba60b7e24fb4a4a330aaa84e8a13a1d5.jpg"}],
-  tobacco:[{name:"Marlboro (pack)",price:5.50,img:"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSaLZySU1x8KFD75xkqv_tpV2NLY5ql5ywlb6B6fGGMJgf0Hyh_Mf3us4-VEeIxiwd-jxwW54dB_totvRelsmp6w01UFuwM"}
+let currentCategory = null;
+let staffLoggedIn = false;
+const menu = {
+  drinks: [
+    {name:"Milk (1/2 gal)",price:2.69,img:"https://media.istockphoto.com/id/1348279087/photo/gallon-of-milk-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=FWhlLk3UnsetpLzQyEZ1HJQVlkVOaXolIP7GF-BxJuA="},
+    {name:"Milk (1 gal)",price:5.38,img:"https://media.istockphoto.com/id/2217740241/photo/gallon-of-milk-bottle-with-pink-cap-isolated-on-black-background.jpg?s=612x612&w=0&k=20&c=Wkmz9WJaFjq2M-jBAIjDlGMecZDsrdWIqoDb-FmH7j0="},
+    {name:"Coke",price:1.50,img:"https://cdn.pixabay.com/photo/2024/08/01/13/39/ai-generated-8937159_1280.jpg"},
+    {name:"Pepsi",price:1.50,img:"https://tse2.mm.bing.net/th/id/OIP.oa7wCrLJASzTm6DrYfcsAwAAAA?cb=defcachec2&pid=ImgDet&w=170&h=170&c=7&dpr=1.4&o=7&rm=3"},
+    {name:"Gatorade",price:1.08,img:"https://tse4.mm.bing.net/th/id/OIP.ObOjauvfcnmLRvz1zHHvGQAAAA?cb=defcachec2&pid=ImgDet&w=170&h=226&c=7&dpr=1.4&o=7&rm=3"},
   ],
-  beer:[{name:"Bud Light (12 pk)",price:10.99,img:"https://luekensliquors.com/cdn/shop/files/bda38f2c517a6abc09e7978467c59dc42aebf3e6.jpg?v=1755768483&width=2200"}]
+  snacks: [
+    {name:"Lays",price:1.50,img:"https://tse2.mm.bing.net/th/id/OIP.nmTU1yFFG-8TOsGllB3e5gHaE8?cb=defcachec2&pid=ImgDet&w=170&h=113&c=7&dpr=1.4&o=7&rm=3"},
+    {name:"Rice Krispies (16pk)",price:6.98,img:"https://content.etilize.com/Out-of-Package/1076479519.jpg"},
+    {name:"Welchs Fruit Snacks",price:9.74,img:"https://www.sheknows.com/wp-content/uploads/2020/03/best-fruit-snacks-amazon.jpg"},
+    {name:"Doritos (party size)",price:4.50,img:"https://th.bing.com/th/id/OIP.j0w5N1XoCfJj_fm_l-MbYQHaHa?w=187&h=187&c=7&r=0&o=7&cb=defcachec2&dpr=1.4&pid=1.7&rm=3"},
+  ],
+  tobacco: [
+    {name:"Marlboro (pack)",price:5.50,img:""}
+  ],
+  beer: [
+    {name:"Bud Light (12 pk)",price:10.99,img:""}
+  ]
 };
+let order = [];
 
-let order=[];
-
+// Screen navigation
 function switchScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
-
 function openCategory(cat){
-  currentCategory = cat; // track selected category
+  currentCategory = cat;
   switchScreen("screen2");
-  displayItems(menu[cat]); // display all items for that category
+  displayItems(menu[cat]);
 }
 function displayItems(items){
   const list = document.getElementById("itemList");
@@ -182,89 +208,48 @@ function displayItems(items){
     list.appendChild(btn);
   });
 }
-const searchInput = document.querySelector(".search input");
-searchInput.addEventListener("input", () => {
-  if (!currentCategory) return; // do nothing if no category is selected
-
-  const query = searchInput.value.toLowerCase().trim();
-  const filteredItems = menu[currentCategory].filter(item => 
-    item.name.toLowerCase().includes(query)
-  );
-
-  displayItems(filteredItems.length ? filteredItems : menu[currentCategory]);
+document.querySelector(".search input").addEventListener("input", (e) => {
+  if(!currentCategory) return;
+  const query = e.target.value.toLowerCase().trim();
+  const filtered = menu[currentCategory].filter(item => item.name.toLowerCase().includes(query));
+  displayItems(filtered.length ? filtered : menu[currentCategory]);
 });
 
-
 function addToOrder(item){
-  const found=order.find(i=>i.name===item.name);
+  const found = order.find(i=>i.name===item.name);
   if(found){found.qty++;} else{order.push({...item,qty:1});}
   updateHeaderTotals();
 }
-
 function updateHeaderTotals(){
   let subtotal=0,count=0;
   order.forEach(i=>{subtotal+=i.price*i.qty;count+=i.qty;});
-  itemCount.innerText=count+" items";
-  totalAmount.innerText="$"+subtotal.toFixed(2);
+  document.getElementById("itemCount").innerText=count+" items";
+  document.getElementById("totalAmount").innerText="$"+subtotal.toFixed(2);
 }
-
 function openOrderScreen() {
   switchScreen("screen3");
   const os = document.getElementById("orderScreen");
   os.innerHTML = "";
-
-  let subtotal = 0;
-  let totalItems = 0;
-
-  order.forEach((item, index) => {
-    const total = item.price * item.qty;
-    subtotal += total;
-    totalItems += item.qty;
-
-    const row = document.createElement("div");
-    row.className = "order-row";
-    row.innerHTML = `
-      <button class="delete-btn" onclick="removeItem(${index})"> X </button>
+  let subtotal=0,totalItems=0;
+  order.forEach((item,index)=>{
+    const total=item.price*item.qty;
+    subtotal+=total;
+    totalItems+=item.qty;
+    const row=document.createElement("div");
+    row.className="order-row";
+    row.innerHTML=`<button class="delete-btn" onclick="removeItem(${index})"> X </button>
       <img src="${item.img}">
       <div class="order-name">${item.name} (x${item.qty})</div>
-      <div>$${total.toFixed(2)}</div>
-    `;
+      <div>$${total.toFixed(2)}</div>`;
     os.appendChild(row);
   });
-
-  // Container for item count + subtotal
-  const subtotalContainer = document.createElement("div");
-  subtotalContainer.style.display = "flex";
-  subtotalContainer.style.flexDirection = "column";
-  subtotalContainer.style.alignItems = "flex-end";
-  subtotalContainer.style.marginTop = "10px";
-  subtotalContainer.style.marginRight = "15px";
-
-  // Item count
-  const itemCountDiv = document.createElement("div");
-  itemCountDiv.style.fontWeight = "bold";
-  itemCountDiv.style.fontSize = "20px";
-  itemCountDiv.innerText = `${totalItems} Items`;
-  subtotalContainer.appendChild(itemCountDiv);
-
-  // Subtotal
-  const sub = document.createElement("div");
-  sub.className = "subtotal-box";
-  sub.innerText = "Subtotal: $" + subtotal.toFixed(2);
-  subtotalContainer.appendChild(sub);
-
+  const subtotalContainer=document.createElement("div");
+  subtotalContainer.style.display="flex"; subtotalContainer.style.flexDirection="column"; subtotalContainer.style.alignItems="flex-end"; subtotalContainer.style.marginTop="10px"; subtotalContainer.style.marginRight="15px";
+  const itemCountDiv=document.createElement("div"); itemCountDiv.style.fontWeight="bold"; itemCountDiv.style.fontSize="20px"; itemCountDiv.innerText=totalItems+" Items"; subtotalContainer.appendChild(itemCountDiv);
+  const sub=document.createElement("div"); sub.className="subtotal-box"; sub.innerText="Subtotal: $"+subtotal.toFixed(2); subtotalContainer.appendChild(sub);
   os.appendChild(subtotalContainer);
 }
-
-
- 
-function removeItem(index){
-  order[index].qty--;
-  if(order[index].qty<=0) order.splice(index,1);
-  openOrderScreen();
-  updateHeaderTotals();
-}
-
+function removeItem(index){order[index].qty--; if(order[index].qty<=0) order.splice(index,1); openOrderScreen(); updateHeaderTotals();}
 function goHome(){switchScreen("screen1");}
 
 function showQR() {
@@ -274,35 +259,186 @@ function showQR() {
   overlay.style.display = "flex";
   qrcodeDiv.innerHTML = "";
 
-  const text = order.map(i => `${i.name} x ${i.qty}`).join("\n") || "No items";
+  let subtotal = 0;
 
-  // Determine max size that fits screen
-  const maxSize = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8); 
-  new QRCode(qrcodeDiv, { text: text, width: maxSize, height: maxSize ,correctLevel: QRCode.CorrectLevel.L});
+  const lines = order.map(item => {
+    subtotal += item.price * item.qty;
+    return `${item.name} x${item.qty}`;
+  });
+
+  // ⬇️ Add spacing + subtotal at bottom
+  lines.push("");
+  lines.push(`Subtotal: $${subtotal.toFixed(2)}`);
+
+  const text = lines.join("\n");
+
+  const maxSize = Math.min(
+    window.innerWidth * 0.8,
+    window.innerHeight * 0.8
+  );
+
+  new QRCode(qrcodeDiv, {
+    text,
+    width: maxSize,
+    height: maxSize,
+    correctLevel: QRCode.CorrectLevel.L
+  });
 }
-
-
-
-function closeQR() {
-  const overlay = document.getElementById("overlay");
-  overlay.style.display = "none";
-
-  // Clear the view order screen
-  const orderScreen = document.getElementById("orderScreen");
-  orderScreen.innerHTML = "";
-
-  // Reset header totals if desired
-  itemCount.innerText = "0 items";
-  totalAmount.innerText = "$0.00";
-
-  // Optional: reset the current order array if you want to fully clear it
-  order = [];
+function closeQR(){
+  document.getElementById("overlay").style.display="none";
+  document.getElementById("orderScreen").innerHTML="";
+  document.getElementById("itemCount").innerText="0 items";
+  document.getElementById("totalAmount").innerText="$0.00";
+  order=[];
   goHome();
 }
 
-</script>
+// Menu toggle
+document.getElementById("menuBtn").addEventListener("click", (e) => {
+  e.stopPropagation(); // prevent menu from closing due to outer clicks
+  const menu = document.getElementById("staffMenu");
+  menu.style.display = (menu.style.display === "block") ? "none" : "block";
+});
 
+// Optional: close menu if clicking outside
+document.addEventListener("click", () => {
+  const menu = document.getElementById("staffMenu");
+  if (!staffLoggedIn) menu.style.display = "none"; // menu auto-closes only if not logged in
+});
+
+// Staff login: menu stays open after login
+document.getElementById("staffLoginBtn").onclick = (e) => {
+  e.stopPropagation(); // Prevent the click from closing the menu
+  const pass = prompt("Enter Staff Code:");
+  if(pass === "1234") {
+    staffLoggedIn = true;
+    const menu = document.getElementById("staffMenu");
+    menu.style.display = "block"; // force it to stay open
+  } else {
+    alert("Wrong Code");
+  }
+};
+
+// Reports
+// Reports: show items prepared for the customer
+document.getElementById("reportsBtn").onclick = () => {
+  if(!staffLoggedIn) return alert("Login first!");
+
+  if(order.length === 0) {
+    alert("No items prepared yet.");
+    return;
+  }
+
+  // Create a string of each item with name and quantity
+  const reportText = order.map(i => `${i.name} x ${i.qty}`).join("\n");
+
+  // Show in alert (can later replace with a modal or better display)
+  alert("Items prepared for customer:\n" + reportText);
+};
+
+// Add/Edit Items modal
+document.getElementById("editItemsBtn").onclick = () => {
+  if(!staffLoggedIn) return alert("Login first!");
+  const category = prompt("Enter category to edit (drinks/snacks/tobacco/beer)").toLowerCase();
+  if(!menu[category]) return alert("Invalid category!");
+  const modal = document.getElementById("editModal");
+  const container = document.getElementById("editContainer");
+  container.innerHTML=""; 
+  modal.style.display="flex";
+
+  function createItemRow(item={name:"",price:"",img:""},isNew=false){
+    const row=document.createElement("div"); 
+    row.style.display="flex"; 
+    row.style.flexDirection="column"; 
+    row.style.gap="10px"; 
+    row.style.borderBottom="1px solid #ccc"; 
+    row.style.paddingBottom="10px";
+
+    const nameInput=document.createElement("input"); 
+    nameInput.type="text"; 
+    nameInput.placeholder="Item Name"; 
+    nameInput.value=item.name; 
+    nameInput.style.padding="5px"; 
+    nameInput.style.fontSize="16px"; 
+    row.appendChild(nameInput);
+
+    const priceInput=document.createElement("input"); 
+    priceInput.type="number"; 
+    priceInput.placeholder="Price"; 
+    priceInput.value=item.price; 
+    priceInput.style.padding="5px"; 
+    priceInput.style.fontSize="16px"; 
+    row.appendChild(priceInput);
+
+    let categoryInput;
+    if(isNew){ 
+      categoryInput=document.createElement("input"); 
+      categoryInput.type="text"; 
+      categoryInput.placeholder="Category"; 
+      categoryInput.value=category; 
+      categoryInput.style.padding="5px"; 
+      categoryInput.style.fontSize="16px"; 
+      row.appendChild(categoryInput);
+    }
+
+    const imgLink=document.createElement("a"); 
+    imgLink.href="#"; 
+    imgLink.innerText="Add Image"; 
+    imgLink.style.color="blue";
+
+    // store original image
+    imgLink.dataset.img = item.img || "";
+    imgLink.dataset.originalImg = item.img || "";
+
+    imgLink.onclick=(e)=>{
+      e.preventDefault(); 
+      const fileInput=document.createElement("input"); 
+      fileInput.type="file"; 
+      fileInput.accept="image/*";
+      fileInput.onchange=(event)=>{
+        const file=event.target.files[0]; 
+        if(file){
+          const reader=new FileReader(); 
+          reader.onload=(e)=>{
+            imgLink.dataset.img=e.target.result; 
+            imgLink.innerText="Image Added"; 
+            imgLink.style.color="green";
+          }; 
+          reader.readAsDataURL(file);
+        }
+      }; 
+      fileInput.click();
+    };
+    row.appendChild(imgLink);
+    container.appendChild(row);
+  }
+
+  menu[category].forEach(item=>createItemRow(item));
+  document.getElementById("addNewItemBtn").onclick=()=>createItemRow({},true);
+
+  document.getElementById("doneEditBtn").onclick=()=>{
+    const rows = container.children; 
+    const newItems=[];
+
+    for(let r of rows){
+      const inputs = r.querySelectorAll("input"); 
+      if(!inputs[0].value) continue;
+      const name = inputs[0].value; 
+      const price = parseFloat(inputs[1].value)||0; 
+      const img = r.querySelector("a").dataset.img || r.querySelector("a").dataset.originalImg || ""; 
+      const catName = inputs[2]?.value || category;
+      newItems.push({name,price,img});
+      if(catName!==category){ 
+        if(!menu[catName]) menu[catName]=[]; 
+        menu[catName].push({name,price,img});
+      }
+    }
+
+    menu[category]=newItems; 
+    modal.style.display="none"; 
+    if(currentCategory===category) displayItems(menu[category]);
+  };
+};
+</script>
 </body>
 </html>
-
-
