@@ -28,13 +28,467 @@ body { margin:0; font-family: Arial; background:#1a1a1a; color:white; }
   margin-left: 10px;
   padding:20px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+ grid-template-columns:repeat(auto-fit, minmax(110px, max-content));
   gap:25px;}
   
 .cat-btn {
-  aspect-ratio:1/1;
   border:none;
   border-radius:6px;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:22px;
+
+  padding:30px 5px;   /* creates size */
+  width:auto;          /* width fits text */
+  height:auto;         /* height fits padding */
+}
+.drinks { background:#89CFF0; }  
+.snacks { background:#FFD580; }  
+.tobacco { background:#808080; }  
+.beer { background:#765341; }  
+.household{ background: lightgreen; }
+.miscellaneous{ background:#8D4585;}
+
+/* ITEMS */
+#itemList { margin-top:13px;margin-left:20px;display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:20px; padding:10px; padding-bottom:90px;}
+.item { background:#333; width:90px; height: 130px;border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center;cursor:pointer; aspect-ratio:1/1; padding:6px; text-align:center;}
+.item img { width:60px; height:60px; margin-top:18px;object-fit:cover; border-radius:4px; }
+
+/* ORDER */
+#orderScreen { padding:15px; padding-bottom:100px; overflow-y:auto;}
+.order-row { display:flex; align-items:center; gap:10px; background:#222; padding:8px; border-radius:6px; margin-bottom:8px;}
+.order-row img { width:80px; height:80px; object-fit:cover; border-radius:4px;}
+.delete-btn { background:red; color:white; border:none; width:35px; height:35px; border-radius:6px;}
+.order-name { flex:1;}
+.subtotal-box { text-align:right; font-weight:bold; margin-top:15px;font-size: 20px;}
+
+/* BUTTONS */
+.button-bar { position:fixed; bottom:15px; right:15px; display:flex; gap:10px;}
+.done-btn { background:#00c853; color:white; border:none; padding:15px 25px; border-radius:6px;}
+.back-btn { background:#666; color:white; border:none; padding:15px 25px; border-radius:6px;}
+
+/* QR */
+.overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center;}
+.qr-box {
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 190vw;
+  max-height: 190vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#qrcode { width: 100%; height: 100%; }
+#screen1 .search { display: none; }
+
+#menuBtn { background: white; color: black; border: none; border-radius: 4px; padding: 10px 12px; font-size: 16px; display: flex; align-items: center; cursor: pointer; margin-left: 10px;}
+#menuBtn .hamburger { font-size: 20px; line-height: 1; }
+#menuBtn .menuText { margin-left: 5px; }
+
+#staffMenu { display: none; position: absolute; top: 60px; right: 10px; background: white; border: 1px solid #ccc; padding: 0; margin: 0; z-index: 999;}
+#staffMenu li { list-style: none; padding: 12px 16px; font-size: 18px; color: black; cursor: pointer; }
+#staffMenu li:hover { background: #eee; }
+
+/* Edit modal styles */
+#editModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:flex-start; overflow-y:auto; z-index:1000; }
+#editModal > div { background:white; padding:20px; border-radius:10px; max-width:600px; width:90%; margin-top:50px; }
+#editModal h2 { margin-top:0; }
+#editContainer { display:flex; flex-direction:column; gap:20px; margin-bottom:20px; }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="drive-thru">Drive Thru</div>
+    <div class="one">ONE</div>
+  </div>
+  <div class="total-view">
+    <span id="itemCount">0 items</span>
+    <span id="totalAmount">$0.00</span>
+    <button class="view-order" onclick="openOrderScreen()">VIEW ORDER</button>
+    <button id="menuBtn">
+      <span class="hamburger">☰</span>
+      <span class="menuText">Menu</span>
+      <ul id="staffMenu">
+        <li id="staffLoginBtn">Staff Login</li>
+        <li id="reportsBtn">Reports</li>
+        <li id="editItemsBtn">Add/Edit Items</li>
+      </ul>
+    </button>
+  </div>
+</div>
+<div class="redline"></div>
+
+<div id="screen1" class="screen active">
+  <div class="categories">
+    <button class="cat-btn drinks" onclick="openCategory('drinks')">Drinks</button>
+    <button class="cat-btn snacks" onclick="openCategory('snacks')">Snacks</button>
+    <button class="cat-btn household" onclick="openCategory('household')">Household</button>
+    <button class="cat-btn miscellaneous" onclick="openCategory('miscellaneous')">Miscellaneous</button>
+  
+  </div>
+</div>
+
+<div id="screen2" class="screen">
+  <div class="search"><input placeholder="Search item..."></div>
+  <div id="itemList"></div>
+  <div class="button-bar">
+    <button class="done-btn" onclick="showQR()">DONE</button>
+    <button class="back-btn" onclick="goHome()">BACK</button>
+  </div>
+</div>
+
+<div id="screen3" class="screen">
+  <div id="orderScreen"></div>
+  <div class="button-bar">
+    <button class="done-btn" onclick="showQR()">DONE</button>
+    <button class="back-btn" onclick="goHome()">BACK</button>
+  </div>
+</div>
+
+<!-- QR Overlay -->
+<div class="overlay" id="overlay" onclick="if(event.target.id==='overlay') closeQR()">
+  <div class="qr-box"><div id="qrcode"></div></div>
+</div>
+
+<!-- Edit Items Modal -->
+<div id="editModal">
+  <div>
+    <h2>Edit Items</h2>
+    <div id="editContainer"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button id="addNewItemBtn" style="background:#2196F3;color:white;padding:10px 15px;border:none;border-radius:5px;">Add</button>
+      <button id="doneEditBtn" style="background:#4CAF50;color:white;padding:10px 15px;border:none;border-radius:5px;">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentCategory = null;
+let staffLoggedIn = false;
+const menu = {
+  drinks: [
+    {name:"Milk (1/2 gal)",price:2.69,img:"https://media.istockphoto.com/id/1348279087/photo/gallon-of-milk-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=FWhlLk3UnsetpLzQyEZ1HJQVlkVOaXolIP7GF-BxJuA="},
+    {name:"Milk (1 gal)",price:5.38,img:"https://media.istockphoto.com/id/2217740241/photo/gallon-of-milk-bottle-with-pink-cap-isolated-on-black-background.jpg?s=612x612&w=0&k=20&c=Wkmz9WJaFjq2M-jBAIjDlGMecZDsrdWIqoDb-FmH7j0="},
+    {name:"Coke",price:1.50,img:"https://cdn.pixabay.com/photo/2024/08/01/13/39/ai-generated-8937159_1280.jpg"},
+    {name:"Pepsi",price:1.50,img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSS5khAYwd4s8CG8Ns2nsOuT-5ro0y-2bJYQA&s"},
+    {name:"Gatorade",price:1.08,img:"https://tse4.mm.bing.net/th/id/OIP.ObOjauvfcnmLRvz1zHHvGQAAAA?cb=defcachec2&pid=ImgDet&w=170&h=226&c=7&dpr=1.4&o=7&rm=3"},
+  ],
+  snacks: [
+    {name:"Lays",price:1.50,img:"https://tse2.mm.bing.net/th/id/OIP.nmTU1yFFG-8TOsGllB3e5gHaE8?cb=defcachec2&pid=ImgDet&w=170&h=113&c=7&dpr=1.4&o=7&rm=3"},
+    {name:"Rice Krispies (16pk)",price:6.98,img:"https://content.etilize.com/Out-of-Package/1076479519.jpg"},
+    {name:"Welchs Fruit Snacks",price:9.74,img:"https://www.sheknows.com/wp-content/uploads/2020/03/best-fruit-snacks-amazon.jpg"},
+    {name:"Doritos (party size)",price:4.50,img:"https://th.bing.com/th/id/OIP.j0w5N1XoCfJj_fm_l-MbYQHaHa?w=187&h=187&c=7&r=0&o=7&cb=defcachec2&dpr=1.4&pid=1.7&rm=3"},
+      {name:"Cheese Crackers (12pk)",price:8.75,img:"https://www.orderve.com/cdn/shop/files/D120001256997810.jpg?v=1758257848&width=1214"},
+
+  ],
+ 
+  household:[
+    {name:"Toilet Paper Bundle",price:13.99,img:"https://img.uline.com/is/image/uline/S-13703?$Small$"},
+    {name:"Paper Towels",price:1.00,img:"https://i5.walmartimages.com/seo/Black-and-White-2-Ply-Paper-Towels-88-Sheets_298c79bd-3b00-4786-81d5-3adc14df37ba_1.fc28f7779507266219d2ee3125054fce.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"},
+    {name:"Dish Soap",price:1.00,img:"https://i5.walmartimages.com/seo/Dawn-Ultra-Liquid-Dish-Soap-Dishwashing-Liquid-Grease-Removal-Original-5-8oz_31d11145-e002-441b-b010-ad3839e4bd44.8f1863ce9ac4f2bc76eb2c4c78e98aed.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"},
+    {name:"Salt/Pepper Combo",price:2.50,img:"https://i5.walmartimages.com/seo/Morton-Salt-Iodized-Salt-McCormick-Black-Pepper-5-25-oz-Shaker-Set_4591c552-6dc8-4261-8d5f-2dcf261d8238.a0d7c96b4c015abe6201f7fb2976322d.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"},
+    {name:"Paper Plates 150ct",price:21.00,img:"https://i5.walmartimages.com/seo/BAGASSEWARE-9-Round-Plate_3af19502-b164-413c-8383-80d4e96a8404.a6705333f5c3ce6f41a024a439913cef.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"},
+
+  ],
+  miscellaneous:[
+    {name:"Lighters",price:5.3,img:"https://i5.walmartimages.com/seo/BIC-Classic-Pocket-Lighter-Assorted-Colors-Pack-of-5-Lighters-Colors-May-Vary_ace628d9-8496-4cdf-a02d-6d0e4b9bf86e.c865979597afa1ab8e3d12e798e4298d.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"},
+    {name:"Batteries",price:10.05,img:"https://i5.walmartimages.com/seo/Duracell-Coppertop-AA-1-5V-Alkaline-Batteries-8-count_3d3c36a1-90e5-4fb2-bc60-4f7f598926e1.ce97b7c5e2b408975cab3ba8ee5d48f6.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"},
+    {name:"Bandaids",price:8.3,img:"https://i5.walmartimages.com/seo/Equate-Antibacterial-Assorted-Bandages-Variety-Pack-120-Count_76618bc3-138c-4cba-a0f3-0b0c00d52a5f.b38996cf0e713fc1386eba2ee5786d08.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"},
+    
+    
+    {name:"Cigarettes (pack)",price:5.50,img:"https://t4.ftcdn.net/jpg/00/99/74/93/360_F_99749313_9nC0DDvyXcGP5NiXLd8EFZbzs2KAHkpG.jpg"},
+     
+    {name:"Beer(12 pk)",price:10.99,img:"https://i5.walmartimages.com/asr/4ae5110a-eac9-488a-8a38-be766b9e176c.63c73898b7e9f15f245ba92bff2edeef.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"},
+  
+    ],
+  
+};
+let order = [];
+
+// Screen navigation
+function switchScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function openCategory(cat){
+  currentCategory = cat;
+  switchScreen("screen2");
+  displayItems(menu[cat]);
+}
+function displayItems(items){
+  const list = document.getElementById("itemList");
+  list.innerHTML = "";
+  items.forEach(item => {
+    const btn = document.createElement("div");
+    btn.className = "item";
+    btn.innerHTML = `<img src="${item.img}"><div>${item.name}</div><div>$${item.price.toFixed(2)}</div>`;
+    btn.onclick = () => addToOrder(item);
+    list.appendChild(btn);
+  });
+}
+document.querySelector(".search input").addEventListener("input", (e) => {
+  if(!currentCategory) return;
+  const query = e.target.value.toLowerCase().trim();
+  const filtered = menu[currentCategory].filter(item => item.name.toLowerCase().includes(query));
+  displayItems(filtered.length ? filtered : menu[currentCategory]);
+});
+
+function addToOrder(item){
+  const found = order.find(i=>i.name===item.name);
+  if(found){found.qty++;} else{order.push({...item,qty:1});}
+  updateHeaderTotals();
+}
+function updateHeaderTotals(){
+  let subtotal=0,count=0;
+  order.forEach(i=>{subtotal+=i.price*i.qty;count+=i.qty;});
+  document.getElementById("itemCount").innerText=count+" items";
+  document.getElementById("totalAmount").innerText="$"+subtotal.toFixed(2);
+}
+function openOrderScreen() {
+  switchScreen("screen3");
+  const os = document.getElementById("orderScreen");
+  os.innerHTML = "";
+  let subtotal=0,totalItems=0;
+  
+  order.forEach((item,index)=>{
+    const total=item.price*item.qty;
+    subtotal+=total;
+    totalItems+=item.qty;
+    const row=document.createElement("div");
+    row.className="order-row";
+    row.innerHTML=`<button class="delete-btn" onclick="removeItem(${index})"> X </button>
+      <img src="${item.img}">
+      <div class="order-name">${item.name} (x${item.qty})</div>
+      <div>$${total.toFixed(2)}</div>`;
+    os.appendChild(row);
+  });
+
+  // Subtotal container
+  const subtotalContainer=document.createElement("div");
+  subtotalContainer.style.display="flex"; 
+  subtotalContainer.style.flexDirection="column"; 
+  subtotalContainer.style.alignItems="flex-end"; 
+  subtotalContainer.style.marginTop="10px"; 
+  subtotalContainer.style.marginRight="15px";
+
+  const itemCountDiv=document.createElement("div");
+  itemCountDiv.style.fontWeight="bold"; 
+  itemCountDiv.style.fontSize="20px"; 
+  itemCountDiv.innerText=totalItems+" Items"; 
+  subtotalContainer.appendChild(itemCountDiv);
+
+  const sub=document.createElement("div"); 
+  sub.className="subtotal-box"; 
+  sub.innerText="Subtotal: $"+subtotal.toFixed(2); 
+  subtotalContainer.appendChild(sub);
+
+  // Add horizontal line under subtotal
+  const line = document.createElement("hr");
+  line.style.width="40px";
+  line.style.border="1px solid white";
+  line.style.marginTop="5px";
+  subtotalContainer.appendChild(line);
+
+  os.appendChild(subtotalContainer);
+}
+function removeItem(index){order[index].qty--; if(order[index].qty<=0) order.splice(index,1); openOrderScreen(); updateHeaderTotals();}
+function goHome(){switchScreen("screen1");}
+
+function showQR() {
+  const overlay = document.getElementById("overlay");
+  const qrcodeDiv = document.getElementById("qrcode");
+  overlay.style.display = "flex";
+  qrcodeDiv.innerHTML = "";
+
+  let text = "";
+  let subtotal = 0;
+
+  if(order.length === 0){
+    text = "No items";
+  } else {
+
+    order.forEach(i=>{
+      text += `${i.name} X${i.qty}\n`;
+      subtotal += i.price * i.qty;
+    });
+
+    text += "---------------------\n";
+    text += `Subtotal: $${subtotal.toFixed(2)}`;
+  }
+
+  const maxSize = Math.min(window.innerWidth*0.8, window.innerHeight*0.8);
+
+  new QRCode(qrcodeDiv,{
+    text:text,
+    width:maxSize,
+    height:maxSize,
+    correctLevel:QRCode.CorrectLevel.L
+  });
+}
+function closeQR(){
+  document.getElementById("overlay").style.display="none";
+  document.getElementById("orderScreen").innerHTML="";
+  document.getElementById("itemCount").innerText="0 items";
+  document.getElementById("totalAmount").innerText="$0.00";
+  order=[];
+  goHome();
+}
+
+// Menu toggle
+document.getElementById("menuBtn").addEventListener("click", (e) => {
+  e.stopPropagation(); // prevent menu from closing due to outer clicks
+  const menu = document.getElementById("staffMenu");
+  menu.style.display = (menu.style.display === "block") ? "none" : "block";
+});
+
+// Optional: close menu if clicking outside
+document.addEventListener("click", () => {
+  const menu = document.getElementById("staffMenu");
+  if (!staffLoggedIn) menu.style.display = "none"; // menu auto-closes only if not logged in
+});
+
+// Staff login: menu stays open after login
+document.getElementById("staffLoginBtn").onclick = (e) => {
+  e.stopPropagation(); // Prevent the click from closing the menu
+  const pass = prompt("Enter Staff Code:");
+  if(pass === "1234") {
+    staffLoggedIn = true;
+    const menu = document.getElementById("staffMenu");
+    menu.style.display = "block"; // force it to stay open
+  } else {
+    alert("Wrong Code");
+  }
+};
+
+// Reports
+// Reports: show items prepared for the customer
+document.getElementById("reportsBtn").onclick = () => {
+  if(!staffLoggedIn) return alert("Login first!");
+
+  if(order.length === 0) {
+    alert("No items prepared yet.");
+    return;
+  }
+
+  // Create a string of each item with name and quantity
+  const reportText = order.map(i => `${i.name} x ${i.qty}`).join("\n");
+
+  // Show in alert (can later replace with a modal or better display)
+  alert("Items prepared for customer:\n" + reportText);
+};
+
+// Add/Edit Items modal
+document.getElementById("editItemsBtn").onclick = () => {
+  if(!staffLoggedIn) return alert("Login first!");
+  const category = prompt("Enter category to edit (drinks/snacks/tobacco/beer)").toLowerCase();
+  if(!menu[category]) return alert("Invalid category!");
+  const modal = document.getElementById("editModal");
+  const container = document.getElementById("editContainer");
+  container.innerHTML=""; 
+  modal.style.display="flex";
+
+  function createItemRow(item={name:"",price:"",img:""},isNew=false){
+    const row=document.createElement("div"); 
+    row.style.display="flex"; 
+    row.style.flexDirection="column"; 
+    row.style.gap="10px"; 
+    row.style.borderBottom="1px solid #ccc"; 
+    row.style.paddingBottom="10px";
+
+    const nameInput=document.createElement("input"); 
+    nameInput.type="text"; 
+    nameInput.placeholder="Item Name"; 
+    nameInput.value=item.name; 
+    nameInput.style.padding="5px"; 
+    nameInput.style.fontSize="16px"; 
+    row.appendChild(nameInput);
+
+    const priceInput=document.createElement("input"); 
+    priceInput.type="number"; 
+    priceInput.placeholder="Price"; 
+    priceInput.value=item.price; 
+    priceInput.style.padding="5px"; 
+    priceInput.style.fontSize="16px"; 
+    row.appendChild(priceInput);
+
+    let categoryInput;
+    if(isNew){ 
+      categoryInput=document.createElement("input"); 
+      categoryInput.type="text"; 
+      categoryInput.placeholder="Category"; 
+      categoryInput.value=category; 
+      categoryInput.style.padding="5px"; 
+      categoryInput.style.fontSize="16px"; 
+      row.appendChild(categoryInput);
+    }
+
+    const imgLink=document.createElement("a"); 
+    imgLink.href="#"; 
+    imgLink.innerText="Add Image"; 
+    imgLink.style.color="blue";
+
+    // store original image
+    imgLink.dataset.img = item.img || "";
+    imgLink.dataset.originalImg = item.img || "";
+
+    imgLink.onclick=(e)=>{
+      e.preventDefault(); 
+      const fileInput=document.createElement("input"); 
+      fileInput.type="file"; 
+      fileInput.accept="image/*";
+      fileInput.onchange=(event)=>{
+        const file=event.target.files[0]; 
+        if(file){
+          const reader=new FileReader(); 
+          reader.onload=(e)=>{
+            imgLink.dataset.img=e.target.result; 
+            imgLink.innerText="Image Added"; 
+            imgLink.style.color="green";
+          }; 
+          reader.readAsDataURL(file);
+        }
+      }; 
+      fileInput.click();
+    };
+    row.appendChild(imgLink);
+    container.appendChild(row);
+  }
+
+  menu[category].forEach(item=>createItemRow(item));
+  document.getElementById("addNewItemBtn").onclick=()=>createItemRow({},true);
+
+  document.getElementById("doneEditBtn").onclick=()=>{
+    const rows = container.children; 
+    const newItems=[];
+
+    for(let r of rows){
+      const inputs = r.querySelectorAll("input"); 
+      if(!inputs[0].value) continue;
+      const name = inputs[0].value; 
+      const price = parseFloat(inputs[1].value)||0; 
+      const img = r.querySelector("a").dataset.img || r.querySelector("a").dataset.originalImg || ""; 
+      const catName = inputs[2]?.value || category;
+      newItems.push({name,price,img});
+      if(catName!==category){ 
+        if(!menu[catName]) menu[catName]=[]; 
+        menu[catName].push({name,price,img});
+      }
+    }
+
+    menu[category]=newItems; 
+    modal.style.display="none"; 
+    if(currentCategory===category) displayItems(menu[category]);
+  };
+};
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"e3c1c9af36de41759418005494a48906","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>  border-radius:6px;
   color:white;
   font-weight:bold;
   cursor:pointer;
@@ -442,3 +896,4 @@ document.getElementById("editItemsBtn").onclick = () => {
 </script>
 </body>
 </html>
+
